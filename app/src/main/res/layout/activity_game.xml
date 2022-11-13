@@ -189,6 +189,18 @@
             android:layout_height="match_parent"
             android:background="#4B5FE2">
 
+            <ProgressBar
+                android:id="@+id/progressBar2"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:max="100"
+                android:progress="100"/>
+
             <TextView
                 android:id="@+id/tvQ"
                 android:layout_width="wrap_content"
@@ -207,8 +219,9 @@
             <ProgressBar
                 android:id="@+id/progressBar"
                 style="?android:attr/progressBarStyle"
-                android:layout_width="612dp"
+                android:layout_width="0dp"
                 android:layout_height="479dp"
+                android:visibility="invisible"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -223,9 +236,26 @@
                 android:fontFamily="@font/kurislandlight"
                 android:text="TextView"
                 android:textColor="#fff"
-                android:textSize="24sp"
+                android:textSize="48sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
+
+            <Button
+                android:id="@+id/btnHome"
+                android:layout_width="222dp"
+                android:layout_height="111dp"
+                android:background="@drawable/btn_home"
+                android:fontFamily="@font/kurislandbold"
+                android:onClick="homeClick"
+                android:paddingTop="50dp"
+                android:text="@string/button_home"
+                android:textAllCaps="false"
+                android:textSize="28sp"
+                android:visibility="invisible"
+                app:backgroundTint="@android:color/transparent"
+                app:backgroundTintMode="src_atop"
+                tools:layout_editor_absoluteX="194dp"
+                tools:layout_editor_absoluteY="290dp" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
@@ -261,25 +291,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvResult" />
-
-    <Button
-        android:id="@+id/btnHome"
-        android:layout_width="222dp"
-        android:layout_height="111dp"
-        android:layout_marginTop="50dp"
-        android:background="@drawable/btn_home"
-        android:fontFamily="@font/kurislandbold"
-        android:onClick="homeClick"
-        android:paddingTop="50dp"
-        android:text="@string/button_home"
-        android:textAllCaps="false"
-        android:textSize="28sp"
-        android:visibility="invisible"
-        app:backgroundTint="@android:color/transparent"
-        app:backgroundTintMode="src_atop"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnPlayAgain" />
 
     <TextView
         android:id="@+id/tvResult"
