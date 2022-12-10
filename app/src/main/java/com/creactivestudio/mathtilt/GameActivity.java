@@ -15,10 +15,10 @@ import android.widget.Toast;
 
 import java.util.Random;
 
-public class GameActivity extends AppCompatActivity  {
+public class GameActivity extends AppCompatActivity {
     private static final int THRESHOLD = 15;
 
-    ProgressBar progressBar, progressBarLinear;
+    ProgressBar progressBarLinear;
     Random randomNumber;
     private TextView tvTargetNumber, tvCalculation;
     CountDownTimer countDownTimer;
@@ -30,7 +30,8 @@ public class GameActivity extends AppCompatActivity  {
     // To get the data from Intent
     Bundle bundle;
     String selectedMathOperation;
-    // Get the Orientation Changes From device
+
+    // Listen the Orientation Changes from device
     OrientationEventListener orientationListener;
 
 
@@ -40,21 +41,22 @@ public class GameActivity extends AppCompatActivity  {
         setContentView(R.layout.activity_game);
         init();
 
-        bundle=getIntent().getExtras();
-        if(bundle!=null) {
-            selectedMathOperation=bundle.getString("selected_operation");
+        bundle = getIntent().getExtras();
+        if (bundle != null) { // Control the bundle if it is null or not
+            selectedMathOperation = bundle.getString("selected_operation"); // when not null is than get the value
         }
-        Toast.makeText(this, selectedMathOperation + " gelen bilgi ", Toast.LENGTH_SHORT).show();
-         orientationListener = new OrientationEventListener(this, SensorManager.SENSOR_DELAY_GAME) {
+
+
+        // Set the orientation event listener to get the changes
+        // User gets the random number if device from landscape to portrait mode switches
+        orientationListener = new OrientationEventListener(this, SensorManager.SENSOR_DELAY_GAME) {
             public void onOrientationChanged(int orientation) {
-                if(isLandscape(orientation)){
-                    // show();
-                    Toast.makeText(GameActivity.this, "lands", Toast.LENGTH_SHORT).show();
-                } else if (isPortrait(orientation)) {
-                    Toast.makeText(GameActivity.this, "port", Toast.LENGTH_SHORT).show();
+                if (isLandscape(orientation)) {
+                    // Do something in Landscape Mode
+                } else if (isPortrait(orientation)) { // When the user switches to portrait mode
                     // stop counter .. get the random number and change activity  ...
                     countDownTimer.cancel();
-                  //  tvCalculation.setText(currentCalculationNumber);
+                    //  tvCalculation.setText(currentCalculationNumber);
                     startActivity(new Intent(GameActivity.this, MathOperationsActivity.class));
                     orientationListener.disable();
                 }
@@ -62,15 +64,20 @@ public class GameActivity extends AppCompatActivity  {
         };
 
         setTargetTextView();
-        startCounter();
+        startCounter(); // Starts the game logic
 
     }
 
-    private boolean isLandscape(int orientation){// >75 - <105
+    /**
+     * Figure out if the device in Landscape Mode
+     * @param orientation
+     * @return
+     */
+    private boolean isLandscape(int orientation) {// >75 - <105
         return orientation >= (90 - THRESHOLD) && orientation <= (90 + THRESHOLD);
     }
 
-    private boolean isPortrait(int orientation){ //>345 - <360   >0 - <15
+    private boolean isPortrait(int orientation) { //>345 - <360   >0 - <15
         return (orientation >= (360 - THRESHOLD) && orientation <= 360) || (orientation >= 0 && orientation <= THRESHOLD);
     }
 
@@ -81,7 +88,6 @@ public class GameActivity extends AppCompatActivity  {
     public void init() {
         tvTargetNumber = findViewById(R.id.tvQ);
         randomNumber = new Random();
-        progressBar = findViewById(R.id.progressBar);
         progressBarLinear = findViewById(R.id.progressBar2);
         tvCalculation = findViewById(R.id.tvCalculation);
 
@@ -101,7 +107,12 @@ public class GameActivity extends AppCompatActivity  {
         return returnValue;
     }
 
-
+    /**
+     * Get a random number to calculate
+     *
+     * @param level
+     * @return
+     */
     public int getRandomNumberForCalculation(int level) {
         int returnValue = 0;
         if (level == 1) {
@@ -115,8 +126,6 @@ public class GameActivity extends AppCompatActivity  {
      */
     public void startCounter() {
         progressBarLinear.setVisibility(View.VISIBLE);
-        // progressBarLinear.setProgress(100);
-
         progress = 100;
         progressBarLinear.setProgress(progressBarProgress);
 
@@ -130,7 +139,6 @@ public class GameActivity extends AppCompatActivity  {
             @Override
             public void onFinish() {
 
-                progressBar.setVisibility(View.INVISIBLE);
                 tvCalculation.setText(RandomTargetNumber + " = ");
                 tvTargetNumber.setText("");
                 progressBarLinear.setVisibility(View.INVISIBLE);
@@ -167,7 +175,7 @@ public class GameActivity extends AppCompatActivity  {
     protected void onResume() {
         super.onResume();
         orientationListener.enable();
-     }
+    }
 
     @Override
     protected void onPause() {
