@@ -4,32 +4,46 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
-    private ImageView btnStartGame; // Start button
+    // Save user sound settings via SharedPreferences
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
 
     // Sound Control Image gets a boolean value
     private ImageView imgSoundControlMain;
+    private TextView tvAllSensors;
     public boolean isSoundOn;
+
+    // A list of all sensors that available in the device
+    private List <Sensor> sensorList;
+
+
+    private SensorManager mSensorManager = null;
+    private ImageView imgSeeAllSensors;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // initialization views etc.
+        // initialization of the Views etc.
         init();
+        tvAllSensors.setVisibility(View.INVISIBLE); // By default TextView is invisible
+        setAllSensorsTextView(); // Set the textview with device available Sensors
 
 
-
+        // User can control the App sound with these sound icon
         imgSoundControlMain.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -48,17 +62,42 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        // Show a list of all Sensors from the device
+        imgSeeAllSensors.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(tvAllSensors.getVisibility()== View.INVISIBLE){
+                    tvAllSensors.setVisibility(View.VISIBLE);
+                }
+                else tvAllSensors.setVisibility(View.INVISIBLE);
+            }
+        });
     }
 
     /**
      * Initialize the Views
      */
     public void init () {
-        btnStartGame = findViewById(R.id.btnStartGame);
         imgSoundControlMain = findViewById(R.id.imgSoundControlMain);
         sharedPreferences = getSharedPreferences("setting_pref", MODE_PRIVATE);
         editor = sharedPreferences.edit();
+        mSensorManager= (SensorManager) getSystemService(MainActivity.this.SENSOR_SERVICE);
+        sensorList=mSensorManager.getSensorList(Sensor.TYPE_ALL);
+        tvAllSensors=findViewById(R.id.textView5);
+        imgSeeAllSensors=findViewById(R.id.imgSeeAllSensors);
+    }
 
+    /**
+     * Set the textview with device available Sensors
+     */
+    public void setAllSensorsTextView () {
+        String allSensors="";
+        for(int i=0; i<sensorList.size(); i++)
+        {
+            allSensors+= sensorList.get(i).getStringType()+"\n";
+        }
+        tvAllSensors.setText(allSensors);
     }
 
     /**
