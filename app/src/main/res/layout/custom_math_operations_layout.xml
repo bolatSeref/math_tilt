@@ -8,34 +8,33 @@
     tools:context=".MathOperationsActivity">
 
     <ImageView
-        android:id="@+id/imgSubtraction"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:onClick="operationSelected"
+        android:id="@+id/img_subtraction"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginEnd="50dp"
         android:tag="minus"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.5"
         app:srcCompat="@drawable/icon_minus" />
 
     <ImageView
-        android:id="@+id/imgDuplication"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:onClick="operationSelected"
+        android:id="@+id/img_duplication"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
         android:tag="dupli"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/imgSubtraction"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/imgAddition"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/img_multiplication"
         app:srcCompat="@drawable/icon_divide" />
 
     <ImageView
-        android:id="@+id/imgAddition"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:onClick="operationSelected"
+        android:id="@+id/img_addition"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginStart="50dp"
         android:tag="plus"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -44,14 +43,14 @@
         app:srcCompat="@drawable/icon_plus" />
 
     <ImageView
-        android:id="@+id/imgMultiplication"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:onClick="operationSelected"
+        android:id="@+id/img_multiplication"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
         android:tag="multi"
-        app:layout_constraintEnd_toStartOf="@+id/imgSubtraction"
+        app:layout_constraintBottom_toTopOf="@+id/img_duplication"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/imgAddition"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/icon_multiplication" />
 </androidx.constraintlayout.widget.ConstraintLayout>
