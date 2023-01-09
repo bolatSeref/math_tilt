@@ -5,6 +5,9 @@ import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.IBinder;
 
+/**
+ * A service for control the game music
+ */
 public class AudioPlayService extends Service {
     MediaPlayer player;
     public AudioPlayService() {

@@ -1,14 +1,14 @@
 package com.creactivestudio.mathtilt;
 
-import android.app.AlertDialog;
-import android.app.Service;
+ import android.app.Service;
 import android.content.Intent;
-import android.media.MediaPlayer;
-import android.os.CountDownTimer;
+ import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
 
+/**
+ * A Service for to control Countdowntimer
+ */
 public class CountDownTimerService extends Service {
 
     CountDownTimer countDownTimer;
@@ -36,7 +36,6 @@ public class CountDownTimerService extends Service {
 
             @Override
             public void onFinish() {
-                Toast.makeText(CountDownTimerService.this, "bitti", Toast.LENGTH_SHORT).show();
                 Log.d("APP_LOG_", "time finish");
             }
         }.start();

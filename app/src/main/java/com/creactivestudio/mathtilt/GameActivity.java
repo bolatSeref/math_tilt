@@ -27,9 +27,15 @@ import java.util.ArrayList;
 import java.util.Random;
 
 
+/**
+ * Second Activity after MainActivity
+ * User can play the game
+ * Users points saved automatically
+ * User can start and stop the game music
+ *
+ */
 public class GameActivity extends AppCompatActivity {
     private static final int THRESHOLD = 15;
-    String selectedOperation = "";
     ProgressBar progressBarLinear;
     Random randomNumber;
     private TextView tvTargetNumber, tvCalculation, tvCalculationResult, text_operand, tvPoints;
@@ -40,8 +46,7 @@ public class GameActivity extends AppCompatActivity {
     int progressBarProgress = 5;
     int currentCalculationNumber = 0;
     TextView tvTime, tvUserSelectedNumbers;
-    long restTimeInSeconds = 20000;
-    AlertDialog.Builder builder;
+     AlertDialog.Builder builder;
     AlertDialog dialogMathOperations;
     // Listen the Orientation Changes from device
     OrientationEventListener orientationListener;
@@ -77,12 +82,15 @@ public class GameActivity extends AppCompatActivity {
                     // Do something in Landscape Mode
                 } else if (isPortrait(orientation)) { // When the user switches to portrait mode
                     // stop counter .. get the random number and change activity  ...
+                   /*
                     Log.d(APP_LOG, "inside orientation : " + orientation);
                     countDownTimerForRandomNumbers.cancel();
                     // save current number to the list
                     calculationDataList.add(currentCalculationNumber);
                     showMathOperationsDialog();
                     orientationListener.disable();
+
+                    */
                 }
             }
         };
@@ -106,10 +114,32 @@ public class GameActivity extends AppCompatActivity {
         return orientation >= (90 - THRESHOLD) && orientation <= (90 + THRESHOLD);
     }
 
+
+    /**
+     * Check if the orientation Portrait is
+     * @param orientation
+     * @return
+     */
     private boolean isPortrait(int orientation) { //>345 - <360   >0 - <15
         return (orientation >= (360 - THRESHOLD) && orientation <= 360) || (orientation >= 0 && orientation <= THRESHOLD);
     }
 
+    /**
+     * Show Sensor Dialog after button click event.
+     * @param view
+     */
+    public void showSensorDialog (View view)
+    {
+        countDownTimerForRandomNumbers.cancel();
+        // save current number to the list
+        calculationDataList.add(currentCalculationNumber);
+        showMathOperationsDialog();
+    }
+
+
+    /**
+     * Show the Custom Alert Dialog for to get Sensor data
+     */
     private void showMathOperationsDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity.this);
         LayoutInflater inflater = getLayoutInflater();
@@ -122,7 +152,6 @@ public class GameActivity extends AppCompatActivity {
         dialogMathOperations.show();
         countDownTimerForGame.cancel();
 
-        ImageView imgMultiplication = view.findViewById(R.id.img_multiplication);
         TextView txtCurrentNumber = view.findViewById(R.id.txt_current_number);
 
         txtCurrentNumber.setText(MessageFormat.format("{0}", currentCalculationNumber));
@@ -168,30 +197,16 @@ public class GameActivity extends AppCompatActivity {
 
         sensorManager.registerListener(gyroscopeSensorListener, gyroscopeSensor, SensorManager.SENSOR_DELAY_NORMAL);
 
-/*
-        imgMultiplication.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(GameActivity.this, "multi", Toast.LENGTH_SHORT).show();
-                startGameTimer();
-                orientationListener.enable();
-                countDownTimerForRandomNumbers.start();
-                numbersForCalculation.add(currentCalculationNumber);
-                mathOperationList.add('*');
-                // calculationDataList.add(currentCalculationNumber);
-                calculationDataList.add('*');
-                setCalculationTextView();
-                setCalculationResultTextView();
-
-                dialogMathOperations.dismiss();
-
-            }
-        });
-
-
- */
     }
 
+    /**
+     * Get the Sensor Data and save the data to lists
+     * Update TextViews
+     * Operand can be {+,*,/,-}
+     *
+     * @param operand
+     * @param operationName
+     */
     private void selectedMathOperand(char operand, String operationName) {
         Log.d(APP_LOG, operationName);
         text_operand.setText(String.format("%s", operand));
@@ -206,50 +221,20 @@ public class GameActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * After getting the Sensor Data, close the dialog and unregister Gyroscope Listener
+     * to save user resources
+     */
     private void unregisterListener() {
-        dialogMathOperations.dismiss();
+        dialogMathOperations.dismiss(); // Close the dialog
         orientationListener.enable();
-        sensorManager.unregisterListener(gyroscopeSensorListener);
+        sensorManager.unregisterListener(gyroscopeSensorListener); // Unregister GyroscopeListener
     }
+
 
     /**
-     * Initialation the views etc.0
+     * Get the math operation from list and then update the calculation textview
      */
-    public void init() {
-        builder = new AlertDialog.Builder(this);
-        tvTargetNumber = findViewById(R.id.tvQ);
-        randomNumber = new Random();
-        progressBarLinear = findViewById(R.id.progressBar2);
-        tvCalculation = findViewById(R.id.tvCalculation);
-        tvTime = findViewById(R.id.tvTime);
-        numbersForCalculation = new ArrayList<>();
-        mathOperationList = new ArrayList<>();
-        calculationDataList = new ArrayList<>();
-        tvUserSelectedNumbers = findViewById(R.id.tvUserSelectedNumbers);
-        tvCalculationResult = findViewById(R.id.tvCalculationResult);
-        text_operand = findViewById(R.id.text_operand);
-        sharedPreferences = getSharedPreferences("user_points", MODE_PRIVATE);
-        editor = sharedPreferences.edit();
-        sharedPreferencesSound = getSharedPreferences("setting_pref", MODE_PRIVATE);
-        editorSound = sharedPreferences.edit();
-        imgSound=findViewById(R.id.imgSound);
-        tvPoints=findViewById(R.id.tvPoints);
-    }
-
-    /**
-     * Return an int number for level
-     *
-     * @param level
-     * @return
-     */
-    public int getRandomNumberForQuestion(int level) {
-        int returnValue = 0;
-        if (level == 1) {
-            returnValue = randomNumber.nextInt(100);
-        }
-        return returnValue;
-    }
-
     public void setCalculationTextView() {
         //String calculation = RandomTargetNumber + " = ";
         String calculation = "";
@@ -297,6 +282,23 @@ public class GameActivity extends AppCompatActivity {
     }
 
     /**
+     * Get a random number and than set the target TextView
+     */
+    public void setTargetTextView() {
+        RandomTargetNumber = getRandomNumberForQuestion(1);
+        String targetNumberText = RandomTargetNumber + "";
+        tvTargetNumber.setText(targetNumberText);
+    }
+
+    /**
+     * Sets a new Target Number after user the question correct answered
+     *
+     */
+    public void updateRandomNumberTextView() {
+        currentCalculationNumber = getRandomNumberForCalculation(1);
+        tvTargetNumber.setText(String.valueOf(currentCalculationNumber));
+    }
+    /**
      * Update user points when the user the target number reaches
      * Get current user points from shared preferences and than set the new point
      */
@@ -321,6 +323,25 @@ public class GameActivity extends AppCompatActivity {
         return returnValue;
     }
 
+    /**
+     * Return an int number for level
+     *
+     * @param level
+     * @return
+     */
+    public int getRandomNumberForQuestion(int level) {
+        int returnValue = 0;
+        if (level == 1) {
+            returnValue = randomNumber.nextInt(100);
+        }
+        return returnValue;
+    }
+
+    /**
+     * Controll the ImageView for start and stop the game music
+     * Uses SharedPreferences to save user preference
+     * @param view
+     */
     public void soundClick (View view) {
         isSoundOn = sharedPreferences.getBoolean("voice_on", true);
         if (isSoundOn) {
@@ -344,7 +365,6 @@ public class GameActivity extends AppCompatActivity {
     {
         isSoundOn = sharedPreferences.getBoolean("voice_on", true);
         if (isSoundOn) {
-
             imgSound.setImageResource(R.drawable.ic_music_turnon);
             startService(new Intent(this,AudioPlayService.class));
 
@@ -406,27 +426,7 @@ public class GameActivity extends AppCompatActivity {
         mTimerRunning = true;
     }
 
-    private void pauseTimer() {
-        countDownTimerForGame.cancel();
-        mTimerRunning = false;
-    }
 
-    /**
-     * Get a random number and than set the target TextView
-     */
-    public void setTargetTextView() {
-        RandomTargetNumber = getRandomNumberForQuestion(1);
-        String targetNumberText = RandomTargetNumber + "";
-        tvTargetNumber.setText(targetNumberText);
-    }
-
-    /**
-     *
-     */
-    public void updateRandomNumberTextView() {
-        currentCalculationNumber = getRandomNumberForCalculation(1);
-        tvTargetNumber.setText(String.valueOf(currentCalculationNumber));
-    }
 
 
     @Override
@@ -451,6 +451,13 @@ public class GameActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Get a String value as parameter to calculate and than returns
+     * the result as double
+     *
+     * @param str
+     * @return
+     */
     public static double eval(final String str) {
         return new Object() {
             int pos = -1, ch;
@@ -537,4 +544,30 @@ public class GameActivity extends AppCompatActivity {
             }
         }.parse();
     }
+
+    /**
+     * Initialation the views, lists, sharedPrefs and etc.
+     */
+    public void init() {
+        builder = new AlertDialog.Builder(this);
+        tvTargetNumber = findViewById(R.id.tvQ);
+        randomNumber = new Random();
+        progressBarLinear = findViewById(R.id.progressBar2);
+        tvCalculation = findViewById(R.id.tvCalculation);
+        tvTime = findViewById(R.id.tvTime);
+        numbersForCalculation = new ArrayList<>();
+        mathOperationList = new ArrayList<>();
+        calculationDataList = new ArrayList<>();
+        tvUserSelectedNumbers = findViewById(R.id.tvUserSelectedNumbers);
+        tvCalculationResult = findViewById(R.id.tvCalculationResult);
+        text_operand = findViewById(R.id.text_operand);
+        sharedPreferences = getSharedPreferences("user_points", MODE_PRIVATE);
+        editor = sharedPreferences.edit();
+        sharedPreferencesSound = getSharedPreferences("setting_pref", MODE_PRIVATE);
+        editorSound = sharedPreferences.edit();
+        imgSound=findViewById(R.id.imgSound);
+        tvPoints=findViewById(R.id.tvPoints);
+    }
+
+
 }

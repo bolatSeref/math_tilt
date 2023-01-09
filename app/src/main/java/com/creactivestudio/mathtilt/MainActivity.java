@@ -15,6 +15,13 @@ import android.widget.TextView;
 import java.util.List;
 import java.util.SortedMap;
 
+/**
+ * The launcher Activity
+ * User can start the game
+ * User can start and stop the game music
+ * User can see all the sensors that users device has
+ *
+ */
 public class MainActivity extends AppCompatActivity {
 
     // Save user sound settings via SharedPreferences
@@ -78,19 +85,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Initialize the Views
-     */
-    public void init () {
-        imgSoundControlMain = findViewById(R.id.imgSoundControlMain);
-        sharedPreferences = getSharedPreferences("setting_pref", MODE_PRIVATE);
-        editor = sharedPreferences.edit();
-        mSensorManager= (SensorManager) getSystemService(MainActivity.this.SENSOR_SERVICE);
-        sensorList=mSensorManager.getSensorList(Sensor.TYPE_ALL);
-        tvAllSensors=findViewById(R.id.textView5);
-        imgSeeAllSensors=findViewById(R.id.imgSeeAllSensors);
-    }
-
-    /**
      * Set the textview with device available Sensors
      */
     public void setAllSensorsTextView () {
@@ -136,4 +130,17 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         soundControl();
     }
+    /**
+     * Initialize the Views and extras
+     */
+    public void init () {
+        imgSoundControlMain = findViewById(R.id.imgSoundControlMain);
+        sharedPreferences = getSharedPreferences("setting_pref", MODE_PRIVATE);
+        editor = sharedPreferences.edit();
+        mSensorManager= (SensorManager) getSystemService(MainActivity.this.SENSOR_SERVICE);
+        sensorList=mSensorManager.getSensorList(Sensor.TYPE_ALL);
+        tvAllSensors=findViewById(R.id.textView5);
+        imgSeeAllSensors=findViewById(R.id.imgSeeAllSensors);
+    }
+
 }
