@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#4057E1"
-    tools:context=".MathOperationsActivity">
+    android:background="#4057E1">
 
     <ImageView
         android:id="@+id/img_subtraction"
@@ -53,4 +52,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/icon_multiplication" />
+
+    <TextView
+        android:id="@+id/txt_current_number"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/kurislandbold"
+        android:textColor="@color/white"
+        android:textSize="36sp"
+        app:layout_constraintBottom_toTopOf="@+id/img_duplication"
+        app:layout_constraintEnd_toStartOf="@+id/img_subtraction"
+        app:layout_constraintStart_toEndOf="@+id/img_addition"
+        app:layout_constraintTop_toBottomOf="@+id/img_multiplication"
+        tools:text="16" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

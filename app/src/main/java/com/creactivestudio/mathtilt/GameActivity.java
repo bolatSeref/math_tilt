@@ -1,14 +1,17 @@
 package com.creactivestudio.mathtilt;
 
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.drawable.ColorDrawable;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.OrientationEventListener;
 import android.view.View;
@@ -17,6 +20,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -26,7 +32,8 @@ public class GameActivity extends AppCompatActivity {
     String selectedOperation = "";
     ProgressBar progressBarLinear;
     Random randomNumber;
-    private TextView tvTargetNumber, tvCalculation, tvCalculationResult;
+    private TextView tvTargetNumber, tvCalculation, tvCalculationResult, text_operand, tvPoints;
+    private static final String APP_LOG = "APP_LOG_";
     CountDownTimer countDownTimerForRandomNumbers, countDownTimerForGame;
     int RandomTargetNumber;
     double progress;
@@ -34,47 +41,44 @@ public class GameActivity extends AppCompatActivity {
     int currentCalculationNumber = 0;
     TextView tvTime, tvUserSelectedNumbers;
     long restTimeInSeconds = 20000;
-    // To get the data from Intent
-    Bundle bundle;
-    String selectedMathOperation;
     AlertDialog.Builder builder;
     AlertDialog dialogMathOperations;
     // Listen the Orientation Changes from device
     OrientationEventListener orientationListener;
-    private static final long START_TIME_IN_MILLIS = 600000;
+    SensorManager sensorManager;
+    private Sensor gyroscopeSensor;
+    SensorEventListener gyroscopeSensorListener;
+    private static final long START_TIME_IN_MILLIS = 150000;
     private long mTimeLeftInMillis = START_TIME_IN_MILLIS;
     private boolean mTimerRunning;
     ArrayList<Integer> numbersForCalculation;
     ArrayList<Character> mathOperationList;
     ArrayList<Object> calculationDataList;
-
-
+    public boolean isSoundOn;
+    // Save user points via SharedPreferences
+    private SharedPreferences sharedPreferences, sharedPreferencesSound;
+    private SharedPreferences.Editor editor, editorSound;
+    ImageView imgSound;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
-        init();
-        System.out.println(eval("0"));
-        bundle = getIntent().getExtras();
-        if (bundle != null) { // Control the bundle if it is null or not
-            selectedMathOperation = bundle.getString("selected_operation"); // when not null is than get the value
-        }
 
+        init();
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        gyroscopeSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
         // Set the orientation event listener to get the changes
         // User gets the random number if device from landscape to portrait mode switches
         orientationListener = new OrientationEventListener(this, SensorManager.SENSOR_DELAY_GAME) {
             public void onOrientationChanged(int orientation) {
+                Log.d(APP_LOG, "orientation : " + orientation);
                 if (isLandscape(orientation)) {
                     // Do something in Landscape Mode
                 } else if (isPortrait(orientation)) { // When the user switches to portrait mode
                     // stop counter .. get the random number and change activity  ...
+                    Log.d(APP_LOG, "inside orientation : " + orientation);
                     countDownTimerForRandomNumbers.cancel();
-                    //  tvCalculation.setText(currentCalculationNumber);
-                    // Intent intent=new Intent(GameActivity.this, MathOperationsActivity.class);
-                    // intent.putExtra("rest_time", restTimeInSeconds);
-                    // startActivity(intent);
-                    // pauseTimer();
                     // save current number to the list
                     calculationDataList.add(currentCalculationNumber);
                     showMathOperationsDialog();
@@ -87,7 +91,10 @@ public class GameActivity extends AppCompatActivity {
         startCounterForRandomNumbers(); // Starts the game logic
         startGameTimer();
         startService(new Intent(GameActivity.this, CountDownTimerService.class));
+        setUserPoints();
+
     }
+
 
     /**
      * Figure out if the device in Landscape Mode
@@ -116,10 +123,52 @@ public class GameActivity extends AppCompatActivity {
         countDownTimerForGame.cancel();
 
         ImageView imgMultiplication = view.findViewById(R.id.img_multiplication);
-        ImageView imgDuplication = view.findViewById(R.id.img_duplication);
-        ImageView imgAddition = view.findViewById(R.id.img_addition);
-        ImageView imgSubtraction = view.findViewById(R.id.img_subtraction);
+        TextView txtCurrentNumber = view.findViewById(R.id.txt_current_number);
 
+        txtCurrentNumber.setText(MessageFormat.format("{0}", currentCalculationNumber));
+
+        // Create a listener
+        gyroscopeSensorListener = new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent sensorEvent) {
+                Log.d(APP_LOG, "0 : " + sensorEvent.values[0]);
+                Log.d(APP_LOG, "1 : " + sensorEvent.values[1]);
+                Log.d(APP_LOG, "2 : " + sensorEvent.values[2]);
+
+                if (sensorEvent.values[0] > 0.5f) { // anticlockwise x-axis fixed (pitch)
+                    Log.d(APP_LOG, "right");
+                    unregisterListener();
+                    selectedMathOperand('-', "minus");
+                    Log.d(APP_LOG, "minus");
+                } else if (sensorEvent.values[0] < -0.5f) { // clockwise x-axis fixed (pitch)
+                    Log.d(APP_LOG, "left");
+                    unregisterListener();
+                    selectedMathOperand('+', "addition");
+                    Log.d(APP_LOG, "addition");
+                }
+
+                if (sensorEvent.values[1] > 0.5f) { // anticlockwise y-axis fixed (yaw)
+                    Log.d(APP_LOG, "down");
+                    unregisterListener();
+                    selectedMathOperand('*', "multiple");
+                    Log.d(APP_LOG, "multiple");
+                } else if (sensorEvent.values[1] < -0.5f) { // clockwise y-axis fixed (yaw)
+                    Log.d(APP_LOG, "up");
+                    unregisterListener();
+                    selectedMathOperand('/', "division");
+                    Log.d(APP_LOG, "division");
+                }
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int i) {
+            }
+
+        };
+
+        sensorManager.registerListener(gyroscopeSensorListener, gyroscopeSensor, SensorManager.SENSOR_DELAY_NORMAL);
+
+/*
         imgMultiplication.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -139,92 +188,28 @@ public class GameActivity extends AppCompatActivity {
             }
         });
 
-        imgDuplication.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(GameActivity.this, "dupli", Toast.LENGTH_SHORT).show();
-                startGameTimer();
-                orientationListener.enable();
-                countDownTimerForRandomNumbers.start();
-                numbersForCalculation.add(currentCalculationNumber);
-                mathOperationList.add('/');
-                //   calculationDataList.add(currentCalculationNumber);
-                calculationDataList.add('/');
-                setCalculationTextView();
-                setCalculationResultTextView();
-                dialogMathOperations.dismiss();
-            }
-        });
-
-        imgAddition.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(GameActivity.this, "addition", Toast.LENGTH_SHORT).show();
-                startGameTimer();
-                orientationListener.enable();
-                countDownTimerForRandomNumbers.start();
-                numbersForCalculation.add(currentCalculationNumber);
-                mathOperationList.add('+');
-                //  calculationDataList.add(currentCalculationNumber);
-                calculationDataList.add('+');
-                setCalculationTextView();
-                setCalculationResultTextView();
-
-                dialogMathOperations.dismiss();
-            }
-        });
-
-        imgSubtraction.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(GameActivity.this, "subtraction", Toast.LENGTH_SHORT).show();
-
-                startGameTimer();
-                orientationListener.enable();
-                countDownTimerForRandomNumbers.start();
-                numbersForCalculation.add(currentCalculationNumber);
-                mathOperationList.add('-');
-                //  calculationDataList.add(currentCalculationNumber);
-                calculationDataList.add('-');
-                setCalculationTextView();
-                setCalculationResultTextView();
-
-                dialogMathOperations.dismiss();
-            }
-        });
-
-
-        /**
-         * Set selected operation in a String than pass these value via intentExtra to GameActivity
-         * @param view Math Operation Image Views
-         */
-/*
-         switch (view.getTag().toString()) {
-                case "multi": // Multiplication selected
-                    selectedOperation = "multi";
-                    Toast.makeText(this, "multi", Toast.LENGTH_SHORT).show();
-
-                    break;
-                case "dupli":// Duplication selected
-                    selectedOperation = "dupli";
-                    Toast.makeText(this, "dupli", Toast.LENGTH_SHORT).show();
-
-                    break;
-                case "minus":// Subtraction selected
-                    selectedOperation = "minus";
-                    Toast.makeText(this, "minus", Toast.LENGTH_SHORT).show();
-
-                    break;
-                default:
-                    selectedOperation = "plus"; // Addition selected
-                    Toast.makeText(this, "plus", Toast.LENGTH_SHORT).show();
-
-
-        }
-
 
  */
+    }
 
+    private void selectedMathOperand(char operand, String operationName) {
+        Log.d(APP_LOG, operationName);
+        text_operand.setText(String.format("%s", operand));
+        startGameTimer();
+        countDownTimerForRandomNumbers.start();
+        numbersForCalculation.add(currentCalculationNumber);
+        mathOperationList.add(operand);
+        // calculationDataList.add(currentCalculationNumber);
+        calculationDataList.add(operand);
+        setCalculationTextView();
+        setCalculationResultTextView();
+
+    }
+
+    private void unregisterListener() {
+        dialogMathOperations.dismiss();
+        orientationListener.enable();
+        sensorManager.unregisterListener(gyroscopeSensorListener);
     }
 
     /**
@@ -242,6 +227,13 @@ public class GameActivity extends AppCompatActivity {
         calculationDataList = new ArrayList<>();
         tvUserSelectedNumbers = findViewById(R.id.tvUserSelectedNumbers);
         tvCalculationResult = findViewById(R.id.tvCalculationResult);
+        text_operand = findViewById(R.id.text_operand);
+        sharedPreferences = getSharedPreferences("user_points", MODE_PRIVATE);
+        editor = sharedPreferences.edit();
+        sharedPreferencesSound = getSharedPreferences("setting_pref", MODE_PRIVATE);
+        editorSound = sharedPreferences.edit();
+        imgSound=findViewById(R.id.imgSound);
+        tvPoints=findViewById(R.id.tvPoints);
     }
 
     /**
@@ -262,26 +254,59 @@ public class GameActivity extends AppCompatActivity {
         //String calculation = RandomTargetNumber + " = ";
         String calculation = "";
 
-        for (int i = 0; i < calculationDataList.size()-1; i++) {
+        for (int i = 0; i < calculationDataList.size() - 1; i++) {
             calculation += calculationDataList.get(i);
         }
 
         tvUserSelectedNumbers.setText(calculation);
     }
 
+    /**
+     * Set the Calculation Result Text View and control if the user has
+     * the target number reached
+     * When the user reaches the target number than restart the game
+     * when the user has not reached the target number than game goes on
+     */
     public void setCalculationResultTextView() {
         String calculation = "";
 
-        for (int i = 0; i < calculationDataList.size()-1; i++) {
+        for (int i = 0; i < calculationDataList.size() - 1; i++) {
             calculation += calculationDataList.get(i);
         }
-        if (calculationDataList.size() >2) {
-            tvCalculationResult.setText(eval(calculation) + "");
-            calculationDataList.removeAll(calculationDataList);
-            currentCalculationNumber= (int) eval(calculation);
+        Log.d(APP_LOG, "calculation : " + calculation);
+        if (calculationDataList.size() > 2) {
+           int number1 = (int) eval(calculation);
+            //number1 == RandomTargetNumber
+            if (number1==RandomTargetNumber) { // User has reached the target number
+                Toast.makeText(this, "Du hast dein Ziel erreicht", Toast.LENGTH_SHORT).show();
+                // TODO: 06.01.2023 Restart the game - leere die Listen - restart the timer - recalculate the points
+                setTargetTextView();
+                startCounterForRandomNumbers(); // Starts the game logic
+                startGameTimer();
+                startService(new Intent(GameActivity.this, CountDownTimerService.class));
+                setUserPoints();
+
+            } else {
+                tvCalculationResult.setText(number1 + "");
+                calculationDataList.removeAll(calculationDataList);
+                calculationDataList.add(tvCalculationResult.getText());
+                calculationDataList.add(mathOperationList.get(mathOperationList.size() - 1));
+                currentCalculationNumber = (int) eval(calculation);
+            }
         }
     }
 
+    /**
+     * Update user points when the user the target number reaches
+     * Get current user points from shared preferences and than set the new point
+     */
+    public void setUserPoints ()
+    {
+        int userCurrentPoint= sharedPreferences.getInt("user_points", 0);
+        editor.putInt("user_points", ++userCurrentPoint);
+        editor.commit();
+        tvPoints.setText(userCurrentPoint+"");
+    }
     /**
      * Get a random number to calculate
      *
@@ -296,6 +321,38 @@ public class GameActivity extends AppCompatActivity {
         return returnValue;
     }
 
+    public void soundClick (View view) {
+        isSoundOn = sharedPreferences.getBoolean("voice_on", true);
+        if (isSoundOn) {
+            imgSound.setImageResource(R.drawable.ic_music_turnoff);
+            editor.putBoolean("voice_on", false);
+            editor.commit();
+            stopService(new Intent(GameActivity.this,AudioPlayService.class));
+        } else {
+            startService(new Intent(GameActivity.this,AudioPlayService.class));
+            imgSound.setImageResource(R.drawable.ic_music_turnon);
+            editor.putBoolean("voice_on", true);
+            editor.commit();
+        }
+    }
+
+    /**
+     * Control the user sound settings from SharedPreferences and than set the views correctly
+     * When sound on is than start Game Music
+     */
+    public void soundControl()
+    {
+        isSoundOn = sharedPreferences.getBoolean("voice_on", true);
+        if (isSoundOn) {
+
+            imgSound.setImageResource(R.drawable.ic_music_turnon);
+            startService(new Intent(this,AudioPlayService.class));
+
+        } else {
+            imgSound.setImageResource(R.drawable.ic_music_turnoff);
+        }
+
+    }
     /**
      * Start Count Down Timer and the Game
      */
@@ -313,9 +370,7 @@ public class GameActivity extends AppCompatActivity {
 
             @Override
             public void onFinish() {
-
                 tvCalculation.setText("Your Target: " + RandomTargetNumber);
-
                 tvTargetNumber.setText("");
                 progressBarLinear.setVisibility(View.INVISIBLE);
                 startCounterForRandomNumbers();
@@ -354,7 +409,6 @@ public class GameActivity extends AppCompatActivity {
     private void pauseTimer() {
         countDownTimerForGame.cancel();
         mTimerRunning = false;
-
     }
 
     /**
@@ -364,16 +418,12 @@ public class GameActivity extends AppCompatActivity {
         RandomTargetNumber = getRandomNumberForQuestion(1);
         String targetNumberText = RandomTargetNumber + "";
         tvTargetNumber.setText(targetNumberText);
-
-        //numbersForCalculation.add(RandomTargetNumber);
-        //mathOperationList.add('=');
     }
 
     /**
      *
      */
     public void updateRandomNumberTextView() {
-
         currentCalculationNumber = getRandomNumberForCalculation(1);
         tvTargetNumber.setText(String.valueOf(currentCalculationNumber));
     }
@@ -382,12 +432,15 @@ public class GameActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        soundControl();
         orientationListener.enable();
+        sensorManager.registerListener(gyroscopeSensorListener, gyroscopeSensor, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        sensorManager.unregisterListener(gyroscopeSensorListener);
 
     }
 
