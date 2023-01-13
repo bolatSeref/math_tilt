@@ -293,21 +293,108 @@
         android:id="@+id/imgSound"
         android:layout_width="60dp"
         android:layout_height="60dp"
-        android:layout_marginTop="116dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginBottom="40dp"
         android:onClick="soundClick"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/constraintLayout2"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:srcCompat="@drawable/ic_music_turnon" />
 
     <ImageView
         android:id="@+id/btnShowAlertDialogForSensor"
-        android:layout_width="129dp"
-        android:layout_height="126dp"
+        android:layout_width="186dp"
+        android:layout_height="157dp"
         android:layout_marginBottom="32dp"
         android:onClick="showSensorDialog"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/imgSound"
+        app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@drawable/btn_correct_answer" />
+
+    <TextView
+        android:id="@+id/tvGetTheNumber"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/kurislandlight"
+        android:text="Get the random number "
+        android:textAlignment="center"
+        android:textColor="#E91E63"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toBottomOf="@+id/btnShowAlertDialogForSensor"
+        app:layout_constraintEnd_toEndOf="@+id/btnShowAlertDialogForSensor"
+        app:layout_constraintStart_toStartOf="@+id/btnShowAlertDialogForSensor"
+        app:layout_constraintTop_toTopOf="@+id/btnShowAlertDialogForSensor" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="139dp"
+        android:layout_height="101dp"
+        android:layout_marginTop="16dp"
+        android:onClick="extraNumbers"
+        android:tag="3"
+        app:layout_constraintStart_toStartOf="@+id/imageView3"
+        app:layout_constraintTop_toBottomOf="@+id/imageView3"
+        app:srcCompat="@drawable/btn_ok" />
+
+    <ImageView
+        android:id="@+id/imageView3"
+        android:layout_width="139dp"
+        android:layout_height="101dp"
+        android:layout_marginTop="16dp"
+        android:onClick="extraNumbers"
+        android:tag="2"
+        app:layout_constraintStart_toStartOf="@+id/imageView2"
+        app:layout_constraintTop_toBottomOf="@+id/imageView2"
+        app:srcCompat="@drawable/btn_ok" />
+
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="139dp"
+        android:layout_height="101dp"
+        android:layout_marginTop="48dp"
+        android:layout_marginEnd="44dp"
+        android:onClick="extraNumbers"
+        android:tag="1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/constraintLayout"
+        app:srcCompat="@drawable/btn_ok" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/kurislandregular"
+        android:text="1"
+        android:textColor="@color/game_time_color"
+        android:textSize="50sp"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView2"
+        app:layout_constraintEnd_toEndOf="@+id/imageView2"
+        app:layout_constraintStart_toStartOf="@+id/imageView2"
+        app:layout_constraintTop_toTopOf="@+id/imageView2" />
+
+    <TextView
+        android:id="@+id/textView6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/kurislandregular"
+        android:text="3"
+        android:textColor="@color/game_time_color"
+        android:textSize="50sp"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView3"
+        app:layout_constraintEnd_toEndOf="@+id/imageView3"
+        app:layout_constraintStart_toStartOf="@+id/imageView3"
+        app:layout_constraintTop_toTopOf="@+id/imageView3" />
+
+    <TextView
+        android:id="@+id/textView7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/kurislandregular"
+        android:text="5"
+        android:textColor="@color/game_time_color"
+        android:textSize="50sp"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView"
+        app:layout_constraintEnd_toEndOf="@+id/imageView"
+        app:layout_constraintStart_toStartOf="@+id/imageView"
+        app:layout_constraintTop_toTopOf="@+id/imageView" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

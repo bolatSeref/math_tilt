@@ -2,8 +2,10 @@ package com.creactivestudio.mathtilt;
 
 
 import android.app.AlertDialog;
+import android.app.VoiceInteractor;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -13,7 +15,6 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.OrientationEventListener;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -38,8 +39,9 @@ public class GameActivity extends AppCompatActivity {
     private static final int THRESHOLD = 15;
     ProgressBar progressBarLinear;
     Random randomNumber;
-    private TextView tvTargetNumber, tvCalculation, tvCalculationResult, text_operand, tvPoints;
+    private TextView tvTargetNumber, tvCalculation, tvCalculationResult, text_operand, tvPoints, tvGetTheNumber;
     private static final String APP_LOG = "APP_LOG_";
+    private ImageView btnShowAlertDialogForSensor;
     CountDownTimer countDownTimerForRandomNumbers, countDownTimerForGame;
     int RandomTargetNumber;
     double progress;
@@ -48,8 +50,6 @@ public class GameActivity extends AppCompatActivity {
     TextView tvTime, tvUserSelectedNumbers;
      AlertDialog.Builder builder;
     AlertDialog dialogMathOperations;
-    // Listen the Orientation Changes from device
-    OrientationEventListener orientationListener;
     SensorManager sensorManager;
     private Sensor gyroscopeSensor;
     SensorEventListener gyroscopeSensorListener;
@@ -73,56 +73,16 @@ public class GameActivity extends AppCompatActivity {
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         gyroscopeSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
-        // Set the orientation event listener to get the changes
-        // User gets the random number if device from landscape to portrait mode switches
-        orientationListener = new OrientationEventListener(this, SensorManager.SENSOR_DELAY_GAME) {
-            public void onOrientationChanged(int orientation) {
-                Log.d(APP_LOG, "orientation : " + orientation);
-                if (isLandscape(orientation)) {
-                    // Do something in Landscape Mode
-                } else if (isPortrait(orientation)) { // When the user switches to portrait mode
-                    // stop counter .. get the random number and change activity  ...
-                   /*
-                    Log.d(APP_LOG, "inside orientation : " + orientation);
-                    countDownTimerForRandomNumbers.cancel();
-                    // save current number to the list
-                    calculationDataList.add(currentCalculationNumber);
-                    showMathOperationsDialog();
-                    orientationListener.disable();
-
-                    */
-                }
-            }
-        };
-
         setTargetTextView();
         startCounterForRandomNumbers(); // Starts the game logic
         startGameTimer();
         startService(new Intent(GameActivity.this, CountDownTimerService.class));
         setUserPoints();
+        soundControl();
+        btnShowAlertDialogForSensor.setEnabled(false);
+        tvGetTheNumber.setText("Please Wait... ");
+     }
 
-    }
-
-
-    /**
-     * Figure out if the device in Landscape Mode
-     *
-     * @param orientation
-     * @return
-     */
-    private boolean isLandscape(int orientation) {// >75 - <105
-        return orientation >= (90 - THRESHOLD) && orientation <= (90 + THRESHOLD);
-    }
-
-
-    /**
-     * Check if the orientation Portrait is
-     * @param orientation
-     * @return
-     */
-    private boolean isPortrait(int orientation) { //>345 - <360   >0 - <15
-        return (orientation >= (360 - THRESHOLD) && orientation <= 360) || (orientation >= 0 && orientation <= THRESHOLD);
-    }
 
     /**
      * Show Sensor Dialog after button click event.
@@ -136,6 +96,26 @@ public class GameActivity extends AppCompatActivity {
         showMathOperationsDialog();
     }
 
+    /**
+     * Get extra numbers for game instead of random numbers
+     * @param view
+     */
+    public void extraNumbers (View view) {
+        switch (view.getTag().toString()) {
+            case "1":
+                currentCalculationNumber=1;
+                showSensorDialog(view);
+                break;
+            case "2":
+                currentCalculationNumber=3;
+                showSensorDialog(view);
+                break;
+            case "3":
+                currentCalculationNumber=5;
+                showSensorDialog(view);
+                break;
+        }
+    }
 
     /**
      * Show the Custom Alert Dialog for to get Sensor data
@@ -214,7 +194,6 @@ public class GameActivity extends AppCompatActivity {
         countDownTimerForRandomNumbers.start();
         numbersForCalculation.add(currentCalculationNumber);
         mathOperationList.add(operand);
-        // calculationDataList.add(currentCalculationNumber);
         calculationDataList.add(operand);
         setCalculationTextView();
         setCalculationResultTextView();
@@ -227,7 +206,6 @@ public class GameActivity extends AppCompatActivity {
      */
     private void unregisterListener() {
         dialogMathOperations.dismiss(); // Close the dialog
-        orientationListener.enable();
         sensorManager.unregisterListener(gyroscopeSensorListener); // Unregister GyroscopeListener
     }
 
@@ -236,7 +214,6 @@ public class GameActivity extends AppCompatActivity {
      * Get the math operation from list and then update the calculation textview
      */
     public void setCalculationTextView() {
-        //String calculation = RandomTargetNumber + " = ";
         String calculation = "";
 
         for (int i = 0; i < calculationDataList.size() - 1; i++) {
@@ -338,22 +315,23 @@ public class GameActivity extends AppCompatActivity {
     }
 
     /**
-     * Controll the ImageView for start and stop the game music
+     * Check the ImageView for start and stop the game music
      * Uses SharedPreferences to save user preference
      * @param view
      */
     public void soundClick (View view) {
-        isSoundOn = sharedPreferences.getBoolean("voice_on", true);
+        isSoundOn = sharedPreferencesSound.getBoolean("voice_on", true);
         if (isSoundOn) {
             imgSound.setImageResource(R.drawable.ic_music_turnoff);
-            editor.putBoolean("voice_on", false);
-            editor.commit();
+            editorSound.putBoolean("voice_on", false);
+            editorSound.commit();
             stopService(new Intent(GameActivity.this,AudioPlayService.class));
         } else {
             startService(new Intent(GameActivity.this,AudioPlayService.class));
             imgSound.setImageResource(R.drawable.ic_music_turnon);
-            editor.putBoolean("voice_on", true);
-            editor.commit();
+            editorSound.putBoolean("voice_on", true);
+            editorSound.commit();
+
         }
     }
 
@@ -363,7 +341,7 @@ public class GameActivity extends AppCompatActivity {
      */
     public void soundControl()
     {
-        isSoundOn = sharedPreferences.getBoolean("voice_on", true);
+        isSoundOn = sharedPreferencesSound.getBoolean("voice_on", true);
         if (isSoundOn) {
             imgSound.setImageResource(R.drawable.ic_music_turnon);
             startService(new Intent(this,AudioPlayService.class));
@@ -391,14 +369,20 @@ public class GameActivity extends AppCompatActivity {
             @Override
             public void onFinish() {
                 tvCalculation.setText("Your Target: " + RandomTargetNumber);
+                if(!btnShowAlertDialogForSensor.isEnabled()) // Enable the button for showing alert dialog after 3 seconds
+                {
+                    btnShowAlertDialogForSensor.setEnabled(true);
+                    tvGetTheNumber.setText("Get the random number");
+                }
+
                 tvTargetNumber.setText("");
                 progressBarLinear.setVisibility(View.INVISIBLE);
                 startCounterForRandomNumbers();
                 progressBarProgress = 5;
                 updateRandomNumberTextView();
+
             }
         };
-        // tvCalculation.setText(RandomTargetNumber + " = ");
         countDownTimerForRandomNumbers.start();
     }
 
@@ -411,29 +395,20 @@ public class GameActivity extends AppCompatActivity {
         countDownTimerForGame = new CountDownTimer(mTimeLeftInMillis, 1000) {
             @Override
             public void onTick(long l) {
-                //  restTimeInSeconds=startValue- l / 1000;
                 mTimeLeftInMillis = l;
                 tvTime.setText(l / 1000 + "");
-
             }
-
             @Override
             public void onFinish() {
-                // finish the game !!!
-                // control the solution .. when the user +/- 5  achieves than becomes points
             }
         }.start();
         mTimerRunning = true;
     }
 
-
-
-
     @Override
     protected void onResume() {
         super.onResume();
         soundControl();
-        orientationListener.enable();
         sensorManager.registerListener(gyroscopeSensorListener, gyroscopeSensor, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
@@ -447,8 +422,6 @@ public class GameActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        orientationListener.disable();
-
     }
 
     /**
@@ -549,6 +522,8 @@ public class GameActivity extends AppCompatActivity {
      * Initialation the views, lists, sharedPrefs and etc.
      */
     public void init() {
+        tvGetTheNumber=findViewById(R.id.tvGetTheNumber);
+        btnShowAlertDialogForSensor=findViewById(R.id.btnShowAlertDialogForSensor);
         builder = new AlertDialog.Builder(this);
         tvTargetNumber = findViewById(R.id.tvQ);
         randomNumber = new Random();
@@ -564,10 +539,16 @@ public class GameActivity extends AppCompatActivity {
         sharedPreferences = getSharedPreferences("user_points", MODE_PRIVATE);
         editor = sharedPreferences.edit();
         sharedPreferencesSound = getSharedPreferences("setting_pref", MODE_PRIVATE);
-        editorSound = sharedPreferences.edit();
+        editorSound = sharedPreferencesSound.edit();
         imgSound=findViewById(R.id.imgSound);
         tvPoints=findViewById(R.id.tvPoints);
     }
 
-
+    /**
+     * Go to MainActivity when the user back arrow clicks
+     * @param view
+     */
+    public void gameAcBackClick (View view) {
+        onBackPressed();
+    }
 }

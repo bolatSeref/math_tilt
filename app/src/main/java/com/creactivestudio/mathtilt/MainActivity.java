@@ -51,28 +51,7 @@ public class MainActivity extends AppCompatActivity {
         tvAllSensors.setVisibility(View.INVISIBLE); // By default TextView is invisible
         setAllSensorsTextView(); // Set the textview with device available Sensors
 
-
-        // User can control the App sound with these sound icon
-        imgSoundControlMain.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                isSoundOn = sharedPreferences.getBoolean("voice_on", true);
-                if (isSoundOn) {
-                    imgSoundControlMain.setImageResource(R.drawable.ic_music_turnoff);
-                    editor.putBoolean("voice_on", false);
-                    editor.commit();
-                    stopService(new Intent(MainActivity.this,AudioPlayService.class));
-                } else {
-                    startService(new Intent(MainActivity.this,AudioPlayService.class));
-                    imgSoundControlMain.setImageResource(R.drawable.ic_music_turnon);
-                    editor.putBoolean("voice_on", true);
-                    editor.commit();
-                }
-
-            }
-        });
-
-        // Show a list of all Sensors from the device
+      // Show a list of all Sensors from the device
         imgSeeAllSensors.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -82,6 +61,27 @@ public class MainActivity extends AppCompatActivity {
                 else tvAllSensors.setVisibility(View.INVISIBLE);
             }
         });
+    }
+
+
+    /**
+     * Control the user sound settings from SharedPreferences and than set the views correctly
+     * When sound on is than start Game Music
+     */
+    public void soundControl(View view)
+    {
+        isSoundOn = sharedPreferences.getBoolean("voice_on", true);
+        if (isSoundOn) {
+            imgSoundControlMain.setImageResource(R.drawable.ic_music_turnoff);
+            editor.putBoolean("voice_on", false);
+            editor.commit();
+            stopService(new Intent(MainActivity.this,AudioPlayService.class));
+        } else {
+            startService(new Intent(MainActivity.this,AudioPlayService.class));
+            imgSoundControlMain.setImageResource(R.drawable.ic_music_turnon);
+            editor.putBoolean("voice_on", true);
+            editor.commit();
+        }
     }
 
     /**
